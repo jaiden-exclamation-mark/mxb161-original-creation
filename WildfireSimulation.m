@@ -28,7 +28,7 @@ classdef WildfireSimulation
         
         function obj = step(obj)
             % Step forward in the cellular automata
-            [width, height] = size(obj.state);
+            [height, width] = size(obj.state);
             next = obj.state;
             
             % Rules of cellular automata
@@ -49,19 +49,37 @@ classdef WildfireSimulation
         
         function plot(obj)
             % TODO: Plot given state matrix
-            error("TODO");
+            imagesc(uint32(obj.state));
         end
     end
-    methods (Access = private)
+    methods (Access = public)
         function probability = get_ignition_probability(obj, row, column)
-            wind_probability = 0; % TODO
+            wind_probability = 1; % TODO
             probability = obj.constant_ignition_probability ...
                         * (1 + obj.vegetation(row, column)) ...
                         * wind_probability;
         end
         
         function neighbours = get_neighbours(obj, row, column)
-            neighbours = obj.state(row - 1:row + 1, column - 1:column + 1);
+            [height, width] = size(obj.state);
+            neighbours = CellState(zeros(1, 9));
+            for neighbour_index = 1:9
+                % god i love 1-indexing
+                row_delta = floor((neighbour_index - 1) / 3) - 1;
+                column_delta = mod((neighbour_index - 1), 3) - 1;
+
+                neighbour_row = row + row_delta;
+                neighbour_column = column + column_delta;
+                
+                in_bounds = 0 < neighbour_row && neighbour_row <= height && ...
+                            0 < neighbour_column && neighbour_column <= width;
+                
+                if in_bounds
+                    neighbours(neighbour_index) = obj.state(neighbour_row, neighbour_column);
+                else
+                    neighbours(neighbour_index) = CellState.NoFuel;
+                end
+            end
         end
                 
         function next_state = get_next_cell_state(obj, row, column)
