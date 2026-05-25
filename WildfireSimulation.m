@@ -7,16 +7,22 @@ classdef WildfireSimulation
         current_generation % Generation number of the simulation
 
         % Matrix attributes
-        state % Matrix of cell state enums
-        vegetation % Matrix of vegetation ignition probabilities
+        state {mustBeMatrix, mustBeUnderlyingType(state, "CellState")}        % Matrix of cell state enums
+        vegetation {mustBeMatrix, mustBeUnderlyingType(vegetation, "double")} % Matrix of vegetation ignition probabilities
     end
     methods
-        function obj = WildfireSimulation(width, height)
-            if (nargin != 2)
+        function obj = WildfireSimulation(state, vegetation)
+            arguments
+                state {mustBeMatrix}
+                vegetation {mustBeMatrix}
+            end
+            if (nargin ~= 2)
                 error("Improper number of arguments given to WildfireSimulation constructor.");
             end
-            obj.state = zeros(width, height, 'CellState');
             obj.current_generation = 0;
+
+            obj.state = state;
+            obj.vegetation = vegetation;
         end
 
         function step(obj)

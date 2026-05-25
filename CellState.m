@@ -1,4 +1,4 @@
-classdef CellState
+classdef CellState < uint32
     enumeration
         Uninitialised (0)
         
