@@ -49,7 +49,16 @@ classdef WildfireSimulation
         
         function plot(obj)
             % TODO: Plot given state matrix
-            imagesc(uint32(obj.state));
+            no_fuel_colour = [0.3, 0.3, 0.3];
+            not_ignited_colour = [0, 0.7, 0.3];
+            burning_colour = [1, 0, 0];
+            burned_out_colour = [1, 0.8, 0];
+            colormap([no_fuel_colour; not_ignited_colour; burning_colour; burned_out_colour]);
+
+            imagesc(uint32(obj.state) - 1);
+            axis equal;
+            set(gca, 'CLim', [0, 4]);
+            colorbar()
         end
     end
     methods (Access = public)
