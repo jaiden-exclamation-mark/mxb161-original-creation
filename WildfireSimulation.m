@@ -27,7 +27,8 @@ classdef WildfireSimulation
         end
         
         function obj = step(obj)
-            % Step forward in the cellular automata
+            % Progresses the wildfire simulation one step.
+
             [height, width] = size(obj.state);
             next = obj.state;
             
@@ -48,7 +49,14 @@ classdef WildfireSimulation
         end
         
         function plot(obj)
-            % TODO: Plot given state matrix
+            % Plots the given WildfireSimulation using a colour map.
+            %
+            % Each CellState is given a specific colour:
+            % - CellState.NoFuel - grey.
+            % - CellState.NotIgnited - green.
+            % - CellState.Burning - red.
+            % - CellState.BurnedDown - yellow.
+            
             no_fuel_colour = [0.3, 0.3, 0.3];
             not_ignited_colour = [0, 0.7, 0.3];
             burning_colour = [1, 0, 0];
