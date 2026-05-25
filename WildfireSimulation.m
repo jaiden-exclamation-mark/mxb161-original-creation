@@ -61,7 +61,7 @@ classdef WildfireSimulation
             colorbar()
         end
     end
-    methods (Access = public)
+    methods (Access = private)
         function probability = get_ignition_probability(obj, row, column)
             wind_probability = 1; % TODO
             probability = obj.constant_ignition_probability ...
