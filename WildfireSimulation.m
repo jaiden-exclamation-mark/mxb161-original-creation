@@ -21,6 +21,10 @@ classdef WildfireSimulation
                 error("Improper number of arguments given to WildfireSimulation constructor.");
             end
             obj.current_generation = 0;
+
+            if (size(state) ~= size(vegetation))
+                error("State matrix must be the same size as the vegetation matrix.");
+            end
             
             obj.state = state;
             obj.vegetation = vegetation;
