@@ -1,5 +1,7 @@
-num_steps = 1000;
-simulation_size = 500;
+num_steps = 250;
+simulation_size = 100;
+verbose = true;
+plot = true;
 
 disp("Starting wildfire benchmark with " + num_steps + " steps...");
 
@@ -14,20 +16,32 @@ sim.state(break_start:break_end, break_start:break_end) = CellState.NoFuel;
 sim.state(1, 1) = CellState.Burning;
 sim.plot();
 
+erase_line = " \x1b[2K\x1b[0G";
 step_time_stats = zeros(1, num_steps);
 current_step_start = inf;
 current_step_end = inf;
 for i = 1:num_steps
-    disp("Starting step " + i + "...");
+    if verbose
+        fprintf(erase_line + "Starting step %d/%d... ", i, num_steps);
+    end
+
     current_step_start = posixtime(datetime());
     sim = sim.step();
     current_step_end = posixtime(datetime());
     step_time_stats(i) = current_step_end - current_step_start;
-    disp("Completed step " + i + " in " + step_time_stats(i) + " seconds!");
-    sim.plot();
-    drawnow;
+
+    if verbose
+        fprintf("completed in %f seconds.", step_time_stats(i));
+    end
+
+    if plot
+        sim.plot();
+        drawnow;
+    end
 end
 
+fprintf("\n");
+disp("--------------------");
 disp("Benchmark completed!");
 disp("--------------------");
 
