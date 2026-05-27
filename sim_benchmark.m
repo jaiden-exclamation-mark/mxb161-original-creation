@@ -1,7 +1,20 @@
+% Parameters
+
+% Simulation parameters
 num_steps = 250;
 simulation_size = 100;
-verbose = true;
-plot = true;
+
+% Replaces progress bar while benchmark is running with more information.
+verbose = false;
+
+% Plot after each step (dramatically increases runtime)
+plot = false;
+
+% If you're running this in MATLAB's Command Window, set this to false.
+% If you're running this in a terminal, set this to true.
+ansi_compatible = false;
+
+% Setting up the simulation
 
 disp("Starting wildfire benchmark with " + num_steps + " steps...");
 
@@ -16,7 +29,12 @@ sim.state(break_start:break_end, break_start:break_end) = CellState.NoFuel;
 sim.state(1, 1) = CellState.Burning;
 sim.plot();
 
-erase_line = " \x1b[2K\x1b[0G";
+% Benchmark
+if ansi_compatible
+    erase_line = " \x1b[2K\x1b[0G"; % ANSI escape sequence to erase the line then go to the zeroth column.
+else
+    erase_line = "\n";
+end
 step_time_stats = zeros(1, num_steps);
 current_step_start = inf;
 current_step_end = inf;
@@ -32,12 +50,23 @@ for i = 1:num_steps
 
     if verbose
         fprintf("completed in %f seconds.", step_time_stats(i));
+    else
+        segments = 32;
+        num_filled_segments = floor(segments * i / num_steps);
+        filled_segments = repmat('■', 1, num_filled_segments);
+        unfilled_segments = repmat('-', 1, segments - num_filled_segments);
+        fprintf(erase_line + "[%s%s] (%d/%d)", filled_segments, unfilled_segments, i, num_steps);
     end
 
     if plot
         sim.plot();
         drawnow;
     end
+end
+
+if ~plot
+    sim.plot();
+    drawnow;
 end
 
 fprintf("\n");
