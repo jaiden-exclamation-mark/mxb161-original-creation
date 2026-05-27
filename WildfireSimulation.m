@@ -41,8 +41,6 @@ classdef WildfireSimulation
             % 2: state(i,j,t) = Burning -> state(i,j,t+1) = BurnedDown
             % 3: state(i,j,t) = BurnedDown -> state(i,j,t+1) = BurnedDown
             % 4: state(i,j,t) = Burning -> Moore neighbours have a ignition probability p_burn
-
-            % TODO: eliminate this double for loop in lieu of finding a mask for each CellState
             
             no_fuel_mask = next == CellState.NoFuel;
             
@@ -64,12 +62,6 @@ classdef WildfireSimulation
             next(not_ignited_mask) = CellState.NotIgnited;
             next(burning_mask) = CellState.Burning;
             next(burned_down_mask) = CellState.BurnedDown;
-
-            % for row = 1:height
-            %     for column = 1:width
-            %         next(row, column) = obj.get_next_cell_state(row, column);
-            %     end
-            % end
             
             obj.current_generation = obj.current_generation + 1;
             obj.state = next;
@@ -129,41 +121,6 @@ classdef WildfireSimulation
                 for column = 1:width
                     matrix(row, column) = obj.get_ignition_probability(row, column);
                 end
-            end
-        end
-                
-        function next_state = get_next_cell_state(obj, row, column)
-            cell_state = obj.state(row, column);
-            cell_wont_change = cell_state == CellState.NoFuel || cell_state == CellState.BurnedDown;
-            if cell_wont_change
-                next_state = cell_state;
-                return;
-            end
-            
-            switch cell_state
-                case CellState.NotIgnited
-                    % could i not just put the return values into the array without this temp value tomfoolery
-                    [nw, n, ne, w, c, e, sw, s, se] = get_neighbours(obj.state, row, column);
-                    neighbours = [nw, n, ne, w, c, e, sw, s, se];
-                    
-                    burning_mask = neighbours == CellState.Burning;
-                    random_vector = rand(1, length(neighbours));
-                    to_ignite = random_vector < obj.get_ignition_probability(row, column);
-                    to_ignite = to_ignite & burning_mask;
-
-                    if any(to_ignite)
-                        next_state = CellState.Burning;
-                    else
-                        next_state = CellState.NotIgnited;
-                    end
-                case CellState.Burning
-                    if rand() < obj.continued_burn_probability
-                        next_state = CellState.Burning;
-                    else
-                        next_state = CellState.BurnedDown;
-                    end
-                otherwise
-                    error("Uninitialised or invalid cell state '" + cell_state + "' at row " + row + ", column " + column);
             end
         end
     end
