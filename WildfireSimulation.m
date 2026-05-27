@@ -8,26 +8,23 @@ classdef WildfireSimulation
         current_generation % Generation number of the simulation
 
         % Matrix attributes 
-        state {mustBeMatrix, mustBeUnderlyingType(state, "uint32")} = uint32([])  % Matrix of cell state enums
-        vegetation {mustBeMatrix, mustBeBetween(vegetation, -1, 0)} = []          % Matrix of vegetation ignition probabilities
+        state {mustBeMatrix, mustBeUnderlyingType(state, "uint32")} = uint32([])         % Matrix of cell state enums
+        vegetation {mustBeMatrix, mustBeBetween(vegetation, -1, 0)} = []                 % Matrix of vegetation ignition probabilities
+        vegetation_density {mustBeMatrix, mustBeBetween(vegetation_density, -1, 0)} = [] % Matrix of vegetation densities
     end
     methods
-        function obj = WildfireSimulation(state, vegetation)
+        function obj = WildfireSimulation(state)
             arguments
                 state {mustBeMatrix}
-                vegetation {mustBeMatrix}
             end
-            if (nargin ~= 2)
+            if (nargin ~= 1)
                 error("Improper number of arguments given to WildfireSimulation constructor.");
             end
             obj.current_generation = 0;
-
-            if (size(state) ~= size(vegetation))
-                error("State matrix must be the same size as the vegetation matrix.");
-            end
             
             obj.state = state;
-            obj.vegetation = vegetation;
+            obj.vegetation = zeros(size(state));
+            obj.vegetation_density = zeros(size(state));
         end
         
         function obj = step(obj)
@@ -110,8 +107,9 @@ classdef WildfireSimulation
 
         function probability = get_ignition_probability(obj, row, column)
             wind_probability = 1; % TODO
-            probability = obj.constant_ignition_probability ...
-                        * (1 + obj.vegetation(row, column)) ...
+            probability = obj.constant_ignition_probability         ...
+                        * (1 + obj.vegetation(row, column))         ...
+                        * (1 + obj.vegetation_density(row, column)) ...
                         * wind_probability;
         end
 
