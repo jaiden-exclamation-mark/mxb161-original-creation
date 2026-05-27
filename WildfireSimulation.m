@@ -42,11 +42,34 @@ classdef WildfireSimulation
             % 3: state(i,j,t) = BurnedDown -> state(i,j,t+1) = BurnedDown
             % 4: state(i,j,t) = Burning -> Moore neighbours have a ignition probability p_burn
 
-            for row = 1:height
-                for column = 1:width
-                    next(row, column) = obj.get_next_cell_state(row, column);
-                end
-            end
+            % TODO: eliminate this double for loop in lieu of finding a mask for each CellState
+            
+            no_fuel_mask = next == CellState.NoFuel;
+            
+            currently_not_ignited_mask = next == CellState.NotIgnited;
+            currently_burning_mask = next == CellState.Burning;
+            continued_burn_mask = currently_burning_mask & (rand(height, width) < obj.continued_burn_probability);
+            snuffed_flames_mask = currently_burning_mask & ~continued_burn_mask;
+            
+            ignition_mask = currently_not_ignited_mask & (rand(height, width) < obj.get_ignition_probability_matrix());
+            ignition_mask = ignition_mask & obj.get_burning_cell_neighbour_mask();
+
+            burning_mask = continued_burn_mask | ignition_mask;
+
+            not_ignited_mask = currently_not_ignited_mask & ~burning_mask;
+            
+            burned_down_mask = (next == CellState.BurnedDown) | snuffed_flames_mask;
+
+            next(no_fuel_mask) = CellState.NoFuel;
+            next(not_ignited_mask) = CellState.NotIgnited;
+            next(burning_mask) = CellState.Burning;
+            next(burned_down_mask) = CellState.BurnedDown;
+
+            % for row = 1:height
+            %     for column = 1:width
+            %         next(row, column) = obj.get_next_cell_state(row, column);
+            %     end
+            % end
             
             obj.current_generation = obj.current_generation + 1;
             obj.state = next;
@@ -74,11 +97,39 @@ classdef WildfireSimulation
         end
     end
     methods (Access = private)
+        function burning_neighbour_mask = get_burning_cell_neighbour_mask(obj)
+            centre = obj.state == CellState.Burning;
+
+            north = shift(centre, 1, 1);
+            south = shift(centre, 1, 0);
+            east = shift(centre, 1, 2);
+            west = shift(centre, 1, 3);
+            
+            north_east = shift(north, 1, 2);
+            north_west = shift(north, 1, 3);
+            south_east = shift(south, 1, 2);
+            south_west = shift(south, 1, 3);
+
+            burning_neighbour_mask = north_west |  north | north_east | ...
+                                           east | centre |       west | ...
+                                     south_west |  south | south_east;
+        end
+
         function probability = get_ignition_probability(obj, row, column)
             wind_probability = 1; % TODO
             probability = obj.constant_ignition_probability ...
                         * (1 + obj.vegetation(row, column)) ...
                         * wind_probability;
+        end
+
+        function matrix = get_ignition_probability_matrix(obj)
+            [height, width] = size(obj.state);
+            matrix = zeros(height, width);
+            for row = 1:height
+                for column = 1:width
+                    matrix(row, column) = obj.get_ignition_probability(row, column);
+                end
+            end
         end
                 
         function next_state = get_next_cell_state(obj, row, column)
