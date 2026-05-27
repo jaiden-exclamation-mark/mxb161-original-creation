@@ -86,6 +86,7 @@ classdef WildfireSimulation
             axis equal;
             set(gca, 'CLim', [0, 4]);
             colorbar('Ticks', [1, 2, 3, 4] - 0.5, 'TickLabels', ["No Fuel", "Not Ignited", "Burning", "Burned Out"]);
+            title("Wildfire simulation (Generation " + obj.current_generation + ")");
         end
     end
     methods (Access = private)
