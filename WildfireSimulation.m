@@ -93,7 +93,7 @@ classdef WildfireSimulation
             imagesc(uint32(obj.state) - 1);
             axis equal;
             set(gca, 'CLim', [0, 4]);
-            colorbar()
+            colorbar('Ticks', [1, 2, 3, 4] - 0.5, 'TickLabels', ["No Fuel", "Not Ignited", "Burning", "Burned Out"]);
         end
     end
     methods (Access = private)
