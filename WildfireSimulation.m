@@ -80,28 +80,6 @@ classdef WildfireSimulation
                         * (1 + obj.vegetation(row, column)) ...
                         * wind_probability;
         end
-        
-        function neighbours = get_neighbours(obj, row, column)
-            [height, width] = size(obj.state);
-            neighbours = CellState(zeros(1, 9));
-            for neighbour_index = 1:9
-                % god i love 1-indexing
-                row_delta = floor((neighbour_index - 1) / 3) - 1;
-                column_delta = mod((neighbour_index - 1), 3) - 1;
-
-                neighbour_row = row + row_delta;
-                neighbour_column = column + column_delta;
-                
-                in_bounds = 0 < neighbour_row && neighbour_row <= height && ...
-                            0 < neighbour_column && neighbour_column <= width;
-                
-                if in_bounds
-                    neighbours(neighbour_index) = obj.state(neighbour_row, neighbour_column);
-                else
-                    neighbours(neighbour_index) = CellState.NoFuel;
-                end
-            end
-        end
                 
         function next_state = get_next_cell_state(obj, row, column)
             cell_state = obj.state(row, column);
@@ -110,7 +88,9 @@ classdef WildfireSimulation
                 case CellState.NoFuel
                     next_state = CellState.NoFuel;
                 case CellState.NotIgnited
-                    neighbours = obj.get_neighbours(row, column);
+                    % could i not just put the return values into the array without this temp value tomfoolery
+                    [nw, n, ne, w, c, e, sw, s, se] = get_neighbours(obj.state, row, column);
+                    neighbours = [nw, n, ne, w, c, e, sw, s, se];
                     for neighbour = neighbours
                         if neighbour == CellState.Burning
                             % This is where slope calculations and wind calculations would be.
@@ -133,6 +113,14 @@ classdef WildfireSimulation
                     next_state = CellState.BurnedDown;
                 otherwise
                     error("Uninitialised or invalid cell state '" + cell_state + "' at row " + row + ", column " + column);
+            end
+        end
+
+        function shifted = shift(obj, amount, vertical)
+            if vertical
+                shifted = [];
+            else
+                shifted = [];
             end
         end
     end
