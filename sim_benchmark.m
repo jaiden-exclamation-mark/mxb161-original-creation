@@ -1,3 +1,4 @@
+% Please refrain from including this file in a commit if you've just changed the parameters!
 % Parameters
 
 % Simulation parameters
