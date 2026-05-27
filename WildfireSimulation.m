@@ -83,44 +83,36 @@ classdef WildfireSimulation
                 
         function next_state = get_next_cell_state(obj, row, column)
             cell_state = obj.state(row, column);
+            cell_wont_change = cell_state == CellState.NoFuel || cell_state == CellState.BurnedDown;
+            if cell_wont_change
+                next_state = cell_state;
+                return;
+            end
             
             switch cell_state
-                case CellState.NoFuel
-                    next_state = CellState.NoFuel;
                 case CellState.NotIgnited
                     % could i not just put the return values into the array without this temp value tomfoolery
                     [nw, n, ne, w, c, e, sw, s, se] = get_neighbours(obj.state, row, column);
                     neighbours = [nw, n, ne, w, c, e, sw, s, se];
-                    for neighbour = neighbours
-                        if neighbour == CellState.Burning
-                            % This is where slope calculations and wind calculations would be.
-                            % At this moment, it is not implemented.
-                            ignition_probability = obj.get_ignition_probability(row, column);
-                            if rand() < ignition_probability
-                                next_state = CellState.Burning;
-                                return;
-                            end
-                        end
-                    end 
-                    next_state = CellState.NotIgnited;
+                    
+                    burning_mask = neighbours == CellState.Burning;
+                    random_vector = rand(1, length(neighbours));
+                    to_ignite = random_vector < obj.get_ignition_probability(row, column);
+                    to_ignite = to_ignite & burning_mask;
+
+                    if any(to_ignite)
+                        next_state = CellState.Burning;
+                    else
+                        next_state = CellState.NotIgnited;
+                    end
                 case CellState.Burning
                     if rand() < obj.continued_burn_probability
                         next_state = CellState.Burning;
                     else
                         next_state = CellState.BurnedDown;
                     end
-                case CellState.BurnedDown
-                    next_state = CellState.BurnedDown;
                 otherwise
                     error("Uninitialised or invalid cell state '" + cell_state + "' at row " + row + ", column " + column);
-            end
-        end
-
-        function shifted = shift(obj, amount, vertical)
-            if vertical
-                shifted = [];
-            else
-                shifted = [];
             end
         end
     end
