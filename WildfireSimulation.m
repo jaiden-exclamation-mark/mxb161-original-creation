@@ -34,30 +34,30 @@ classdef WildfireSimulation
             % Progresses the wildfire simulation one step.
 
             [height, width] = size(obj.state);
-            next = obj.state;
             
             % Rules of cellular automata
+            
             % 1: state(i,j,t) = NoFuel -> state(i,j,t+1) = NoFuel
-            % 2: state(i,j,t) = Burning -> state(i,j,t+1) = BurnedDown
-            % 3: state(i,j,t) = BurnedDown -> state(i,j,t+1) = BurnedDown
-            % 4: state(i,j,t) = Burning -> Moore neighbours have a ignition probability p_burn
+            no_fuel_mask = obj.state == CellState.NoFuel;
             
-            no_fuel_mask = next == CellState.NoFuel;
-            
-            currently_not_ignited_mask = next == CellState.NotIgnited;
-            currently_burning_mask = next == CellState.Burning;
+            currently_not_ignited_mask = obj.state == CellState.NotIgnited;
+            currently_burning_mask = obj.state == CellState.Burning;
             continued_burn_mask = currently_burning_mask & (rand(height, width) < obj.continued_burn_probability);
             snuffed_flames_mask = currently_burning_mask & ~continued_burn_mask;
             
+            % 4: state(i,j,t) = Burning -> Moore neighbours have a ignition probability p_burn
             ignition_mask = currently_not_ignited_mask & (rand(height, width) < obj.get_ignition_probability_matrix());
             ignition_mask = ignition_mask & obj.get_burning_cell_neighbour_mask();
-
+            
             burning_mask = continued_burn_mask | ignition_mask;
-
             not_ignited_mask = currently_not_ignited_mask & ~burning_mask;
             
-            burned_down_mask = (next == CellState.BurnedDown) | snuffed_flames_mask;
-
+            % 2: state(i,j,t) = Burning -> state(i,j,t+1) = BurnedDown
+            % 3: state(i,j,t) = BurnedDown -> state(i,j,t+1) = BurnedDown
+            burned_down_mask = (obj.state == CellState.BurnedDown) | snuffed_flames_mask;
+            
+            % Create evolved state matrix.
+            next = CellState(zeros(height, width));
             next(no_fuel_mask) = CellState.NoFuel;
             next(not_ignited_mask) = CellState.NotIgnited;
             next(burning_mask) = CellState.Burning;
