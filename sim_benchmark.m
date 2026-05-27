@@ -1,5 +1,7 @@
 num_steps = 100;
 
+disp("Starting wildfire benchmark with " + num_steps + " steps...");
+
 sim = WildfireSimulation(CellState(2 * ones(100, 100)), -0.5 * ones(100, 100));
 sim.constant_ignition_probability = 0.75;
 sim.continued_burn_probability = 0.5;
@@ -21,6 +23,9 @@ for i = 1:num_steps
     sim.plot();
     drawnow;
 end
+
+disp("Benchmark completed!");
+disp("--------------------");
 
 disp("Mean step time: " + mean(step_time_stats) + "s");
 disp("Median step time: " + median(step_time_stats) + "s");
