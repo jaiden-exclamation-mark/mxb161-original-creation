@@ -6,11 +6,13 @@ classdef WildfireSimulation
         wind_speed
         wind_direction
         current_generation % Generation number of the simulation
+        slope_constant (1, 1) = 0; % Constant used in slope's effect on ignition probability 
 
         % Matrix attributes 
         state {mustBeMatrix, mustBeUnderlyingType(state, "uint32")} = uint32([])         % Matrix of cell state enums
         vegetation {mustBeMatrix, mustBeBetween(vegetation, -1, 0)} = []                 % Matrix of vegetation ignition probabilities
         vegetation_density {mustBeMatrix, mustBeBetween(vegetation_density, -1, 0)} = [] % Matrix of vegetation densities
+        elevation {mustBeMatrix} = []
     end
     methods
         function obj = WildfireSimulation(state)
@@ -65,7 +67,7 @@ classdef WildfireSimulation
         end
         
         function plot(obj)
-            % Plots the given WildfireSimulation using a colour map.
+            % PLOT  Plots the given WildfireSimulation using a colour map.
             %
             % Each CellState is given a specific colour:
             % - CellState.NoFuel - grey.
@@ -106,11 +108,12 @@ classdef WildfireSimulation
         end
 
         function probability = get_ignition_probability(obj, row, column)
-            wind_probability = 1; % TODO
+            theta_s = 0; % TODO
+            slope_effect = exp(obj.slope_constant * theta_s);
             probability = obj.constant_ignition_probability         ...
                         * (1 + obj.vegetation(row, column))         ...
                         * (1 + obj.vegetation_density(row, column)) ...
-                        * wind_probability;
+                        * slope_effect;
         end
 
         function matrix = get_ignition_probability_matrix(obj)
