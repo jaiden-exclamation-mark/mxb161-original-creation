@@ -19,14 +19,36 @@ ansi_compatible = false;
 
 disp("Starting wildfire benchmark with " + num_steps + " steps...");
 
-sim = WildfireSimulation(CellState(2 * ones(simulation_size, simulation_size)), -0.5 * ones(simulation_size, simulation_size));
+sim = WildfireSimulation(CellState(2 * ones(simulation_size, simulation_size)));
+sim.vegetation = -0.5 * ones(simulation_size, simulation_size);
 sim.constant_ignition_probability = 0.75;
 sim.continued_burn_probability = 0.5;
 
-break_start = floor(simulation_size / 4);
-break_end = floor(3 * simulation_size / 4);
+centre_index = ceil(simulation_size / 2);
+elevation_matrix = zeros(simulation_size);
+fprintf("Constructing elevation matrix... ");
+for i = centre_index - 1:-1:0
+    elevation_matrix(centre_index + (-i:i), centre_index + (-i:i)) = centre_index - i;
+end
+elevation_matrix
+elevation_matrix = elevation_matrix ./ max(max(elevation_matrix));
+elevation_matrix = exp(elevation_matrix .^ 2)
+fprintf("done.\n");
 
-sim.state(break_start:break_end, break_start:break_end) = CellState.NoFuel;
+fprintf("Setting simulation slope matrix... ");
+sim = sim.set_slope_matrix(elevation_matrix);
+fprintf("done.\n");
+
+break_mask = false(simulation_size);
+
+break_width = floor(3 * simulation_size / 4);
+break_row_start = floor(3 * simulation_size / 8);
+break_row_end = floor(5 * simulation_size / 8);
+
+break_mask(break_row_start:break_row_end, 1:break_width) = true;
+
+sim.state(break_mask) = CellState.NoFuel;
+
 sim.state(1, 1) = CellState.Burning;
 sim.plot();
 

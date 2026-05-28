@@ -12,7 +12,7 @@ classdef WildfireSimulation
         state {mustBeMatrix, mustBeUnderlyingType(state, "uint32")} = uint32([])         % Matrix of cell state enums
         vegetation {mustBeMatrix, mustBeBetween(vegetation, -1, 0)} = []                 % Matrix of vegetation ignition probabilities
         vegetation_density {mustBeMatrix, mustBeBetween(vegetation_density, -1, 0)} = [] % Matrix of vegetation densities
-        elevation {mustBeMatrix} = []
+        slope_matrix {mustBeMatrix} = []
     end
     methods
         function obj = WildfireSimulation(state)
@@ -27,6 +27,7 @@ classdef WildfireSimulation
             obj.state = state;
             obj.vegetation = zeros(size(state));
             obj.vegetation_density = zeros(size(state));
+            obj.slope_matrix = zeros(size(state));
         end
         
         function obj = step(obj)
@@ -87,8 +88,47 @@ classdef WildfireSimulation
             colorbar('Ticks', [1, 2, 3, 4] - 0.5, 'TickLabels', ["No Fuel", "Not Ignited", "Burning", "Burned Out"]);
             title("Wildfire simulation (Generation " + obj.current_generation + ")");
         end
+
+        function obj = set_slope_matrix(obj, elevation_matrix)
+            [height, width] = size(obj.state);
+            slope_matrix = zeros(height, width);
+    
+            % Wildly inefficient but it only has to run once.
+            % Implementation of slope matrix generation derived from Li, Xiaochi (2018)
+            for row = 1:height
+                for column = 1:width
+                    sub_slope_matrix = zeros(3);
+                    if row == 1 || row == height || column == 1 || column == width
+                        rows = max(1, row - 1):min(height, row + 1);
+                        cols = max(1, column - 1):min(width, column + 1);
+                        slope_matrix(rows, cols) = sub_slope_matrix(length(rows), length(cols));
+                        continue;
+                    end
+    
+                    [nw, n, ne, w, c, e, sw, s, se] = get_neighbours(elevation_matrix, row, column);
+                    root_2 = sqrt(2);
+                    sub_slope_matrix = c * ones(3) - [
+                        nw, n, ne;
+                         w, c,  e;
+                        sw, s, se
+                    ];
+                    sub_slope_matrix = sub_slope_matrix ./ [
+                        root_2,      1, root_2;
+                             1, root_2,      1;
+                        root_2,      1, root_2
+                    ];
+                    sub_slope_matrix = atand(sub_slope_matrix);
+    
+                    slope_matrix(row + (-1:1), column + (-1:1)) = sub_slope_matrix;
+                end
+            end
+    
+            obj.slope_matrix = slope_matrix;
+        end
     end
+
     methods (Access = private)
+
         function burning_neighbour_mask = get_burning_cell_neighbour_mask(obj)
             centre = obj.state == CellState.Burning;
 
@@ -108,7 +148,7 @@ classdef WildfireSimulation
         end
 
         function probability = get_ignition_probability(obj, row, column)
-            theta_s = 0; % TODO
+            theta_s = obj.slope_matrix(row, column); % TODO
             slope_effect = exp(obj.slope_constant * theta_s);
             probability = obj.constant_ignition_probability         ...
                         * (1 + obj.vegetation(row, column))         ...
