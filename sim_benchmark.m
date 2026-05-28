@@ -30,9 +30,8 @@ fprintf("Constructing elevation matrix... ");
 for i = centre_index - 1:-1:0
     elevation_matrix(centre_index + (-i:i), centre_index + (-i:i)) = centre_index - i;
 end
-elevation_matrix
 elevation_matrix = elevation_matrix ./ max(max(elevation_matrix));
-elevation_matrix = exp(elevation_matrix .^ 2)
+elevation_matrix = exp(elevation_matrix .^ 2);
 fprintf("done.\n");
 
 fprintf("Setting simulation slope matrix... ");
