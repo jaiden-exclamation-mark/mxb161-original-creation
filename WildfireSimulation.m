@@ -11,7 +11,7 @@ classdef WildfireSimulation
         state {mustBeMatrix, mustBeUnderlyingType(state, "uint32")} = uint32([])                                                             % Matrix of cell state enums
         vegetation {mustBeMatrix, mustBeBetween(vegetation, -1, 0), mustBeUnderlyingType(vegetation, "double")} = []                         % Matrix of vegetation ignition probabilities
         vegetation_density {mustBeMatrix, mustBeBetween(vegetation_density, -1, 0), mustBeUnderlyingType(vegetation_density, "double")} = [] % Matrix of vegetation densities
-        slope_matrix {mustBeMatrix} = []
+        slope_matrix {mustBeMatrix} = cell([])
     end
     methods
         function obj = WildfireSimulation(state)
@@ -26,7 +26,7 @@ classdef WildfireSimulation
             obj.state = state;
             obj.vegetation = zeros(size(state));
             obj.vegetation_density = zeros(size(state));
-            obj.slope_matrix = zeros(size(state));
+            obj.slope_matrix = cell(size(state));
         end
         
         function obj = step(obj)
@@ -168,6 +168,14 @@ classdef WildfireSimulation
                     cell_on_edge = row == 1 || row == height || column == 1 || column == width;
                     if burning_mask(row, column) && ~cell_on_edge
                         sub_slope_matrix = obj.get_sub_slope_matrix(row, column);
+                        
+                        % If the cell is empty, do not attempt trying to apply slope calculations
+                        % This is because empty cells only appear when `create_slope_matrix()` has not been called.
+                        % This results in assuming a perfectly flat surface when the slope matrix has not been initialised.
+                        if (isempty(sub_slope_matrix))
+                            continue;
+                        end
+
                         theta_s = zeros(height, width);
                         theta_s(row + (-1:1), column + (-1:1)) = sub_slope_matrix;
                         slope_effects = exp(obj.slope_constant * theta_s);
