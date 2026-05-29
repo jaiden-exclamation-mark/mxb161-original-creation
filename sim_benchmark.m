@@ -25,13 +25,9 @@ sim.constant_ignition_probability = 0.75;
 sim.continued_burn_probability = 0.5;
 
 centre_index = ceil(simulation_size / 2);
-elevation_matrix = zeros(simulation_size);
 fprintf("Constructing elevation matrix... ");
-for i = centre_index - 1:-1:0
-    elevation_matrix(centre_index + (-i:i), centre_index + (-i:i)) = centre_index - i;
-end
-elevation_matrix = elevation_matrix ./ max(max(elevation_matrix));
-elevation_matrix = exp(elevation_matrix .^ 2);
+column_matrix = repmat(1:simulation_size, simulation_size, 1);
+elevation_matrix = exp(3 * column_matrix ./ max(max(column_matrix)));
 fprintf("done.\n");
 
 fprintf("Setting simulation slope matrix... ");

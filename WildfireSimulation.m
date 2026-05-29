@@ -94,12 +94,12 @@ classdef WildfireSimulation
     
             % Wildly inefficient but it only has to run once.
             % Implementation of slope matrix generation derived from Li, Xiaochi (2018)
-            tic
+            % tic
             parfor i = 1:total_cells
                 row = mod(i, height) + 1;
                 column = floor(i / height) + 1;
                 
-                fprintf("%d/%d (%.2f%%)\n", total_cells - i, total_cells, 100 *(1 - i / total_cells));
+                % fprintf("%d/%d (%.2f%%)\n", total_cells - i, total_cells, 100 *(1 - i / total_cells));
                 sub_slope_matrix = zeros(3);
 
                 if row == 1 || row == height || column == 1 || column == width
@@ -125,7 +125,7 @@ classdef WildfireSimulation
 
                 slope_matrix(i) = {sub_slope_matrix};
             end
-            toc
+            % toc
     
             obj.slope_matrix = slope_matrix;
         end
