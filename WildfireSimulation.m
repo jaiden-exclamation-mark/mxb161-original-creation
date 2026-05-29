@@ -9,9 +9,9 @@ classdef WildfireSimulation
         slope_constant (1, 1) = 0; % Constant used in slope's effect on ignition probability 
 
         % Matrix attributes 
-        state {mustBeMatrix, mustBeUnderlyingType(state, "uint32")} = uint32([])         % Matrix of cell state enums
-        vegetation {mustBeMatrix, mustBeBetween(vegetation, -1, 0)} = []                 % Matrix of vegetation ignition probabilities
-        vegetation_density {mustBeMatrix, mustBeBetween(vegetation_density, -1, 0)} = [] % Matrix of vegetation densities
+        state {mustBeMatrix, mustBeUnderlyingType(state, "uint32")} = uint32([])                                                             % Matrix of cell state enums
+        vegetation {mustBeMatrix, mustBeBetween(vegetation, -1, 0), mustBeUnderlyingType(vegetation, "double")} = []                         % Matrix of vegetation ignition probabilities
+        vegetation_density {mustBeMatrix, mustBeBetween(vegetation_density, -1, 0), mustBeUnderlyingType(vegetation_density, "double")} = [] % Matrix of vegetation densities
         slope_matrix {mustBeMatrix} = []
     end
     methods
