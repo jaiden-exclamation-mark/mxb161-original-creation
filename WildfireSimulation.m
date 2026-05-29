@@ -90,38 +90,42 @@ classdef WildfireSimulation
         function obj = set_slope_matrix(obj, elevation_matrix)
             [height, width] = size(obj.state);
             slope_matrix = cell(height, width);
+            total_cells = height * width;
     
             % Wildly inefficient but it only has to run once.
             % Implementation of slope matrix generation derived from Li, Xiaochi (2018)
-            for row = 1:height
-                for column = 1:width
-                    % fprintf("row = %4d | column = %4d | (%d/%d, %.2f%%)\n", row, column, row * height + column, height * width, (row * height + column) / (height * width) * 100);
-                    sub_slope_matrix = zeros(3);
+            tic
+            parfor i = 1:total_cells
+                row = mod(i, height) + 1;
+                column = floor(i / height) + 1;
+                
+                fprintf("%d/%d (%.2f%%)\n", total_cells - i, total_cells, 100 *(1 - i / total_cells));
+                sub_slope_matrix = zeros(3);
 
-                    if row == 1 || row == height || column == 1 || column == width
-                        slope_matrix(row, column) = {sub_slope_matrix};
-                        continue;
-                    end
-    
-                    [nw, n, ne, w, c, e, sw, s, se] = get_neighbours(elevation_matrix, row, column);
-                    root_2 = sqrt(2);
-                    sub_slope_matrix = c * ones(3) - [
-                        nw, n, ne;
-                         w, c,  e;
-                        sw, s, se
-                    ];
-                    sub_slope_matrix = sub_slope_matrix ./ [
-                        root_2,      1, root_2;
-                             1, root_2,      1;
-                        root_2,      1, root_2
-                    ];
-                    square_side_length = 1; % I believe this is units length/cell? Will make this a class member soon.
-                    sub_slope_matrix = sub_slope_matrix ./ square_side_length;
-                    sub_slope_matrix = atand(sub_slope_matrix);
-    
-                    slope_matrix(row, column) = {sub_slope_matrix};
+                if row == 1 || row == height || column == 1 || column == width
+                    slope_matrix(i) = {sub_slope_matrix};
+                    continue;
                 end
+
+                [nw, n, ne, w, c, e, sw, s, se] = get_neighbours(elevation_matrix, row, column);
+                root_2 = sqrt(2);
+                sub_slope_matrix = c * ones(3) - [
+                    nw, n, ne;
+                        w, c,  e;
+                    sw, s, se
+                ];
+                sub_slope_matrix = sub_slope_matrix ./ [
+                    root_2,      1, root_2;
+                            1, root_2,      1;
+                    root_2,      1, root_2
+                ];
+                square_side_length = 1; % I believe this is units length/cell? Will make this a class member soon.
+                sub_slope_matrix = sub_slope_matrix ./ square_side_length;
+                sub_slope_matrix = atand(sub_slope_matrix);
+
+                slope_matrix(i) = {sub_slope_matrix};
             end
+            toc
     
             obj.slope_matrix = slope_matrix;
         end
@@ -159,6 +163,7 @@ classdef WildfireSimulation
             for row = 1:height
                 for column = 1:width
                     matrix(row, column) = obj.get_ignition_probability(row, column);
+
                     % Apply slope effect only to cells that surround burning cells.
                     cell_on_edge = row == 1 || row == height || column == 1 || column == width;
                     if burning_mask(row, column) && ~cell_on_edge
