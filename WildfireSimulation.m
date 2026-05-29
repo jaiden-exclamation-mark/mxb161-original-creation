@@ -95,7 +95,7 @@ classdef WildfireSimulation
             % Implementation of slope matrix generation derived from Li, Xiaochi (2018)
             for row = 1:height
                 for column = 1:width
-                    fprintf("row = %4d | column = %4d | (%d/%d, %.2f%%)\n", row, column, row * height + column, height * width, (row * height + column) / (height * width) * 100);
+                    % fprintf("row = %4d | column = %4d | (%d/%d, %.2f%%)\n", row, column, row * height + column, height * width, (row * height + column) / (height * width) * 100);
                     sub_slope_matrix = zeros(3);
 
                     if row == 1 || row == height || column == 1 || column == width
@@ -147,20 +147,27 @@ classdef WildfireSimulation
         end
 
         function probability = get_ignition_probability(obj, row, column)
-            theta_s = obj.get_sub_slope_matrix(row, column); % TODO
-            slope_effect = exp(obj.slope_constant * theta_s(2, 2));
             probability = obj.constant_ignition_probability         ...
                         * (1 + obj.vegetation(row, column))         ...
-                        * (1 + obj.vegetation_density(row, column)) ...
-                        * slope_effect;
+                        * (1 + obj.vegetation_density(row, column));
         end
-
+        
         function matrix = get_ignition_probability_matrix(obj)
             [height, width] = size(obj.state);
+            burning_mask = obj.state == CellState.Burning;
             matrix = zeros(height, width);
             for row = 1:height
                 for column = 1:width
                     matrix(row, column) = obj.get_ignition_probability(row, column);
+                    % Apply slope effect only to cells that surround burning cells.
+                    cell_on_edge = row == 1 || row == height || column == 1 || column == width;
+                    if burning_mask(row, column) && ~cell_on_edge
+                        sub_slope_matrix = obj.get_sub_slope_matrix(row, column);
+                        theta_s = zeros(height, width);
+                        theta_s(row + (-1:1), column + (-1:1)) = sub_slope_matrix;
+                        slope_effects = exp(obj.slope_constant * theta_s);
+                        matrix = matrix .* slope_effects;
+                    end
                 end
             end
         end
