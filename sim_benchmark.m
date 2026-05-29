@@ -9,7 +9,7 @@ simulation_size = 100;
 verbose = false;
 
 % Plot after each step (dramatically increases runtime)
-plot = false;
+plot = true;
 
 % If you're running this in MATLAB's Command Window, set this to false.
 % If you're running this in a terminal, set this to true.
@@ -23,6 +23,7 @@ sim = WildfireSimulation(CellState(2 * ones(simulation_size, simulation_size)));
 sim.vegetation = -0.5 * ones(simulation_size, simulation_size);
 sim.constant_ignition_probability = 0.75;
 sim.continued_burn_probability = 0.5;
+sim.units_per_cell = 5;
 
 centre_index = ceil(simulation_size / 2);
 fprintf("Constructing elevation matrix... ");

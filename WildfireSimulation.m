@@ -5,6 +5,7 @@ classdef WildfireSimulation
         continued_burn_probability {mustBeBetween(continued_burn_probability, 0, 1)} = 0
         current_generation % Generation number of the simulation
         slope_constant (1, 1) = 0.078; % Constant used in slope's effect on ignition probability. Value derived from Alexandridis, A. et. al (2008), Table 4.
+        units_per_cell {mustBePositive, mustBeNonzero} = 1; % Units length between cells.
 
         % Matrix attributes 
         state {mustBeMatrix, mustBeUnderlyingType(state, "uint32")} = uint32([])                                                             % Matrix of cell state enums
@@ -80,10 +81,10 @@ classdef WildfireSimulation
             burned_out_colour = [1, 0.8, 0];
             colormap([no_fuel_colour; not_ignited_colour; burning_colour; burned_out_colour]);
 
-            imagesc(uint32(obj.state) - 1);
+            imagesc(uint32(obj.state));
             axis equal;
-            set(gca, 'CLim', [0, 4]);
-            colorbar('Ticks', [1, 2, 3, 4] - 0.5, 'TickLabels', ["No Fuel", "Not Ignited", "Burning", "Burned Out"]);
+            set(gca, 'CLim', [1, 5]);
+            colorbar('Ticks', [1, 2, 3, 4] + 0.5, 'TickLabels', ["No Fuel", "Not Ignited", "Burning", "Burned Out"]);
             title("Wildfire simulation (Generation " + obj.current_generation + ")");
         end
 
@@ -119,8 +120,7 @@ classdef WildfireSimulation
                             1, root_2,      1;
                     root_2,      1, root_2
                 ];
-                square_side_length = 1; % I believe this is units length/cell? Will make this a class member soon.
-                sub_slope_matrix = sub_slope_matrix ./ square_side_length;
+                sub_slope_matrix = sub_slope_matrix ./ obj.units_per_cell;
                 sub_slope_matrix = atand(sub_slope_matrix);
 
                 slope_matrix(i) = {sub_slope_matrix};
