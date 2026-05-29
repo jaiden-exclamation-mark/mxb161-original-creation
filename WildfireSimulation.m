@@ -6,7 +6,7 @@ classdef WildfireSimulation
         wind_speed
         wind_direction
         current_generation % Generation number of the simulation
-        slope_constant (1, 1) = 0; % Constant used in slope's effect on ignition probability 
+        slope_constant (1, 1) = 0.078; % Constant used in slope's effect on ignition probability. Value derived from Alexandridis, A. et. al (2008), Table 4.
 
         % Matrix attributes 
         state {mustBeMatrix, mustBeUnderlyingType(state, "uint32")} = uint32([])                                                             % Matrix of cell state enums
