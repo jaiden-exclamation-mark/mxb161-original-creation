@@ -88,7 +88,7 @@ classdef WildfireSimulation
             title("Wildfire simulation (Generation " + obj.current_generation + ")");
         end
 
-        function obj = set_slope_matrix(obj, elevation_matrix)
+        function obj = create_slope_matrix(obj, elevation_matrix)
             [height, width] = size(obj.state);
             slope_matrix = cell(height, width);
             total_cells = height * width;

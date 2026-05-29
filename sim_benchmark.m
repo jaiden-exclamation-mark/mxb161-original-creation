@@ -3,7 +3,7 @@
 
 % Simulation parameters
 num_steps = 250;
-simulation_size = 100;
+simulation_size = 250;
 
 % Replaces progress bar while benchmark is running with more information.
 verbose = false;
@@ -32,7 +32,7 @@ elevation_matrix = exp(3 * column_matrix ./ max(max(column_matrix)));
 fprintf("done.\n");
 
 fprintf("Setting simulation slope matrix... ");
-sim = sim.set_slope_matrix(elevation_matrix);
+sim = sim.create_slope_matrix(elevation_matrix);
 fprintf("done.\n");
 
 break_mask = false(simulation_size);
