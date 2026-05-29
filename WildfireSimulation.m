@@ -3,8 +3,6 @@ classdef WildfireSimulation
         % Scalar attributes
         constant_ignition_probability {mustBeBetween(constant_ignition_probability, 0, 1)} = 0 % p_h (A. Alexandridis, et. al, p. 195)
         continued_burn_probability {mustBeBetween(continued_burn_probability, 0, 1)} = 0
-        wind_speed
-        wind_direction
         current_generation % Generation number of the simulation
         slope_constant (1, 1) = 0.078; % Constant used in slope's effect on ignition probability. Value derived from Alexandridis, A. et. al (2008), Table 4.
 
